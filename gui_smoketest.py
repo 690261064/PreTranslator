@@ -109,7 +109,24 @@ assert app._known_cache_names()  # GROOT 对应的缓存名
 # ---- 9. _btn_batch: 未选游戏时应弹提示而非崩溃 (messagebox 已 mock)
 app._btn_batch()
 
-# ---- 10. runlog.is_done / marker 与真实游戏目录联动
+# ---- 10. 启动游戏按钮: 未选择提示 / 选中后 startfile 被调用且先补配置
+_startfile = os.startfile
+_rec = []
+os.startfile = lambda p: _rec.append(p)
+app._btn_launch()                        # 未选择 -> mock 提示, 无启动
+assert _rec == []
+app.tree.selection_set(GROOT)
+app._btn_launch()                        # 假游戏无 exe -> mock 警告
+assert _rec == []
+open(os.path.join(GROOT, 'MyGame.exe'), 'wb').close()
+g2 = games.detect_at(GROOT)
+app._fill_tree([g2])
+app.tree.selection_set(GROOT)
+app._btn_launch()
+assert _rec == [g2.exe], _rec
+os.startfile = _startfile
+
+# ---- 11. runlog.is_done / marker 与真实游戏目录联动
 assert runlog.is_done(g, 'zh-CN')
 
 root.destroy()

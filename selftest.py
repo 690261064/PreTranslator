@@ -431,4 +431,27 @@ _keys = [_json.loads(l)['k']
                        encoding='utf-8') if l.strip()]
 assert sorted(_keys) == ['あ', 'い'], _keys
 
+# --- XUAT 配置预生成: BepInEx 版游戏翻译完成时往往还没首跑 ---
+# (不预生成的话 XUAT 首跑按自身默认 Language=en 初始化, zh-CN 预翻译不会被加载)
+_d = tempfile.mkdtemp(prefix='pt_cfg_')
+_g = games.Game(_d, 'bepinex')
+_g.xuat_dll = 'x'  # 模拟 XUAT 已安装 (detect_at 会填真实 dll 路径)
+assert not os.path.isfile(_g.config_ini)
+_g.fix_config('zh-CN', from_lang='ja')
+_t = open(_g.config_ini, encoding='utf-8-sig').read()
+assert 'Language=zh-CN' in _t and 'FromLanguage=ja' in _t, _t
+_g2 = games.Game(_d, 'bepinex')
+assert os.path.isfile(_g2.config_ini)   # 已生成的配置被识别, 不会被重建
+_g2.fix_config('zh-CN', from_lang='ja') # 幂等: 二次调用无副作用
+assert 'Language=zh-CN' in open(_g2.config_ini, encoding='utf-8-sig').read()
+_shutil.rmtree(_d, ignore_errors=True)
+# standalone 版同路径: Config.ini 缺失时也要能预生成
+_ds = tempfile.mkdtemp(prefix='pt_cfgs_')
+_gs = games.Game(_ds, 'standalone')
+assert not os.path.isfile(_gs.config_ini)
+_gs.fix_config('zh-CN', from_lang='ja')
+assert os.path.isfile(_gs.config_ini)
+assert 'Language=zh-CN' in open(_gs.config_ini, encoding='utf-8-sig').read()
+_shutil.rmtree(_ds, ignore_errors=True)
+
 print('SELFTEST OK')

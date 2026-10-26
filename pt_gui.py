@@ -50,6 +50,13 @@ HELP_TEXT = """【翻译通道与额度】
   再点一次「▶ 开始预翻译」只补缺口, 不重复花钱。
 · 有「永久失败」句 (超长/异常句子) 时状态栏会提示, 同样再点一次开始即可补翻。
 
+【启动游戏验证】
+· 「▶ 启动游戏」直接启动所选游戏 (等效双击), 启动前自动补齐缺失的 XUAT 配置。
+· 第一次进游戏没有中文? 常见原因: ① IL2CPP 游戏首跑先生成 interop 组件,
+  第二次启动 XUAT 才生效; ② 配置缺失 (本按钮与预翻译都会自动预生成);
+  ③ 部分界面文字不在提取范围内 (标题菜单图片、视频内嵌字幕、Unity
+  Localization 资源表), 这些需游戏自带语言选项或字体补丁解决。
+
 【缓存维护】
 · 「缓存维护…」列出全部断点缓存目录及状态 (在用 / 重复 / 孤儿), 可一键合并
   重复项 (不丢句子)、删除孤儿 (游戏已删除/移动后残留)。
@@ -237,6 +244,7 @@ class App:
         bar.grid(row=0, column=0, sticky='ew', padx=8, pady=4)
         ttk.Button(bar, text='重新扫描', command=self._btn_scan).pack(side='left', padx=2)
         ttk.Button(bar, text='缓存维护…', command=self._btn_maint).pack(side='left', padx=2)
+        ttk.Button(bar, text='▶ 启动游戏', command=self._btn_launch).pack(side='left', padx=2)
         ttk.Button(bar, text='手动添加游戏文件夹…', command=self._btn_add_game).pack(side='left', padx=2)
         ttk.Button(bar, text='添加扫描目录…', command=self._btn_add_root).pack(side='left', padx=2)
         ttk.Button(bar, text='✕ 移除所选(不再扫描)', style='Danger.TButton',
@@ -812,6 +820,28 @@ class App:
             os.startfile(g.translation_dir)
         else:
             messagebox.showinfo('提示', '翻译目录还不存在, 先运行一次预翻译吧。')
+
+    def _btn_launch(self):
+        g = self._selected_game()
+        if not g:
+            messagebox.showinfo('提示', '请先在列表中选择游戏。')
+            return
+        if not g.exe:
+            messagebox.showwarning('启动游戏', '未在游戏目录找到可启动的 exe:\n%s' % g.root)
+            return
+        # 启动前确保 XUAT 配置存在: 配置缺失时 XUAT 首跑会按自身默认值
+        # (Language=en) 初始化, 写到 zh-CN 的预翻译不会被加载。
+        # 已有配置则原样保留 (ensure_config 幂等)。
+        g.ensure_config(log_fn=self._log)
+        try:
+            os.startfile(g.exe)
+        except OSError as e:
+            messagebox.showerror('启动游戏', '启动失败: %s' % e)
+            return
+        self._log('已启动游戏: %s' % g.exe, 'ok')
+        if g.kind == 'bepinex' and g.il2cpp:
+            self._log('提示: IL2CPP 游戏首次启动会先生成 interop 组件, '
+                      '关闭后再启动一次, XUAT 才会正常加载翻译。', 'info')
 
     def _btn_start(self):
         if self.job and self.job.is_alive():

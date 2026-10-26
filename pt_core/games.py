@@ -157,7 +157,7 @@ class Game:
         """XUAT 已装但配置尚未生成时预生成 (独立版/BepInEx 版通用)。
         BepInEx 版常见于 IL2CPP: 组件解压后、游戏首跑前。"""
         if self.kind == 'standalone':
-            if self.config_ini:
+            if self.config_ini and os.path.isfile(self.config_ini):
                 return True
             at_dir = os.path.join(self.root, 'AutoTranslator')
             try:
@@ -172,7 +172,11 @@ class Game:
             except OSError as e:
                 log_fn('配置预生成失败: %s' % e, 'err')
                 return False
-        if self.kind == 'bepinex' and not self.config_ini and self.xuat_dll:
+        # 注意: config_ini 在构造时就被赋成路径字符串 (不管文件在不在),
+        # 必须用 isfile 判断 —— 旧代码写 not self.config_ini 导致该分支是死代码,
+        # BepInEx 版配置从未被预生成过。
+        if self.kind == 'bepinex' and not os.path.isfile(self.config_ini) \
+                and self.xuat_dll:
             try:
                 cfg_dir = os.path.join(self.bepinex, 'config')
                 os.makedirs(cfg_dir, exist_ok=True)
@@ -190,8 +194,10 @@ class Game:
     def fix_config(self, target_lang='zh-CN', from_lang='ja', override_font=None,
                    log_fn=print, max_chars=None):
         """修正 XUAT 配置: 目标/源语言、热重载、中文字体覆盖 (解决方框乱码)。"""
-        if self.kind == 'standalone':
-            self.ensure_config(log_fn=log_fn)
+        # BepInEx 版游戏翻译完成时往往还没首跑过 (无 config/AutoTranslatorConfig.ini)。
+        # 若不预生成, XUAT 首跑会按自身默认值 (Language=en) 生成配置,
+        # 写到 zh-CN 的预翻译永远不会被加载 —— 实测 ExquisiteFishing 踩过。
+        self.ensure_config(log_fn=log_fn)
         ini = self.config_ini
         if not ini or not os.path.isfile(ini):
             return False
