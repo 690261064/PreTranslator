@@ -1,0 +1,4 @@
+// 剧情: 场景1
+「おはよう。今日も一日、怪我しないようにね」="Morning. Don't get hurt today, okay?"
+「うん、わかった」="Yeah, got it."
+コインが足りない=Not enough coins

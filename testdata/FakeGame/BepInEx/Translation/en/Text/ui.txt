@@ -1,0 +1,7 @@
+// 迷你测试来源: XUAT en 结构
+おはよう、今日も一日頑張ろう=Good morning, let's do our best today
+これは\=等号を含むキーです=This key contains an escaped equals sign
+HPポーション×3個=HP Potion x3
+Save complete!=Save complete!
+『黒い剣』の入手方法を教えて=Tell me how to get the Black Sword
+ennyu:<color=#ff0000>てすと</color>=Rich text test

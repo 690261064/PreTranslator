@@ -1,0 +1,26 @@
+# ---- 用户数据 / 本机状态: 绝不入库 ----
+# config.json 含 DeepL API 密钥
+config.json
+# cache/ 翻译断点(含游戏文本), run_report 含游戏名/额度
+cache/
+logs/
+run_report.jsonl
+batch_run.log
+术语表.txt
+*.zip
+
+# ---- 真实游戏 / 本地测试 ----
+testgame/
+_smoke_tmp/
+*.backup-*/
+
+# ---- 内部工作笔记 (给 AI 助手的过程记录, 不适合公开) ----
+AGENTS.md
+HANDOFF.md
+
+# ---- 本地一次性调试脚本 (_local/ 下自由堆放) ----
+_local/
+
+# ---- Python ----
+__pycache__/
+*.pyc
