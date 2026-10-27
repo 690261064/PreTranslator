@@ -123,7 +123,9 @@ class Game:
     @property
     def has_xuat(self):
         if self.kind == 'bepinex':
-            return bool(self.xuat_dll or self.config_ini)
+            # 只看插件 dll: config_ini 在构造时就是路径字符串, 恒为真,
+            # 拿它做判断会让"任何带 BepInEx 目录的游戏"都显示已装 XUAT。
+            return bool(self.xuat_dll)
         if self.kind == 'standalone':
             return True
         return False

@@ -444,6 +444,11 @@ _g2 = games.Game(_d, 'bepinex')
 assert os.path.isfile(_g2.config_ini)   # 已生成的配置被识别, 不会被重建
 _g2.fix_config('zh-CN', from_lang='ja') # 幂等: 二次调用无副作用
 assert 'Language=zh-CN' in open(_g2.config_ini, encoding='utf-8-sig').read()
+# has_xuat 只看插件 dll: config_ini 恒为路径字符串, 不能拿它判断
+assert _g.has_xuat                                    # 模拟装了 dll
+_g3 = games.Game(_d, 'bepinex')                       # 配置文件在, 但没有 dll
+assert os.path.isfile(_g3.config_ini)
+assert not _g3.has_xuat, '配置文件存在不等于装了 XUAT'
 _shutil.rmtree(_d, ignore_errors=True)
 # standalone 版同路径: Config.ini 缺失时也要能预生成
 _ds = tempfile.mkdtemp(prefix='pt_cfgs_')
